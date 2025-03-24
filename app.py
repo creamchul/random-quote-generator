@@ -204,7 +204,7 @@ base_quotes = [
 all_quotes = base_quotes + st.session_state.custom_quotes
 
 # 제목과 설명
-st.title("💬 랜덤 명언 생성기")
+st.title("💬 명언 생성기")
 st.markdown("""
     <div style='text-align: center; color: #7f8c8d; margin-bottom: 30px;'>
         버튼을 클릭하면 랜덤으로 선택된 명언을 보여드립니다.
