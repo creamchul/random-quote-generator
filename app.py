@@ -97,6 +97,17 @@ st.markdown("""
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 1.5rem !important;  /* 모바일에서 더 작은 폰트 사이즈 */
+        line-height: 1.2 !important;
+        margin-bottom: 0.5rem !important;
+        padding: 0 !important;
+    }
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+        .stMarkdown h1 {
+            font-size: 1.2rem !important;
+            padding: 0 10px !important;
+        }
     }
     .quote-card {
         background-color: white;
