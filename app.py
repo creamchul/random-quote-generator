@@ -12,6 +12,8 @@ if 'custom_quotes' not in st.session_state:
     st.session_state.custom_quotes = []
 if 'show_liked_quotes' not in st.session_state:
     st.session_state.show_liked_quotes = False
+if 'current_quote' not in st.session_state:
+    st.session_state.current_quote = None
 
 # 페이지 설정
 st.set_page_config(
@@ -119,27 +121,28 @@ if search_query:
                     <div class="quote-author">- {quote['author']}</div>
                 </div>
             """, unsafe_allow_html=True)
+            
+            # 좋아요/제외 버튼
+            col1, col2 = st.columns(2)
+            with col1:
+                if quote in st.session_state.liked_quotes:
+                    if st.button("❤️ 좋아요 취소", key=f"search_unlike_{quote['id']}"):
+                        st.session_state.liked_quotes.remove(quote)
+                        st.success("좋아요가 취소되었습니다!")
+                        st.rerun()
+                else:
+                    if st.button("🤍 좋아요", key=f"search_like_{quote['id']}"):
+                        st.session_state.liked_quotes.append(quote)
+                        st.success("좋아요가 추가되었습니다!")
+                        st.rerun()
+            
+            with col2:
+                if st.button("🚫 다시 보지 않기", key=f"search_exclude_{quote['id']}"):
+                    st.session_state.excluded_quotes.append(quote)
+                    st.success("해당 명언이 제외되었습니다!")
+                    st.rerun()
     else:
         st.info("검색 결과가 없습니다.")
-
-# 사이드바에 명언 추가 폼
-with st.sidebar:
-    st.header("✍️ 새로운 명언 추가")
-    with st.form("add_quote_form"):
-        new_quote_text = st.text_area("명언 내용")
-        new_quote_author = st.text_input("작성자")
-        submit_button = st.form_submit_button("명언 추가")
-        
-        if submit_button and new_quote_text and new_quote_author:
-            new_quote = {
-                "text": new_quote_text,
-                "author": new_quote_author,
-                "id": f"custom_{len(st.session_state.custom_quotes)}"
-            }
-            st.session_state.custom_quotes.append(new_quote)
-            st.success("새로운 명언이 추가되었습니다! 🎉")
-            st.balloons()
-            st.rerun()
 
 # 수동으로 명언 추가
 with st.expander("📝 직접 명언 추가하기"):
@@ -212,20 +215,21 @@ if st.session_state.current_quote:
             st.success("해당 명언이 제외되었습니다!")
             st.rerun()
 
-# 좋아요한 명언 목록
+# 좋아요한 명언 목록 (접을 수 있는 섹션)
 if st.session_state.liked_quotes:
-    st.markdown("### ❤️ 좋아요한 명언")
-    for quote in st.session_state.liked_quotes:
-        st.markdown(f"""
-            <div class="quote-card">
-                <div class="quote-text">"{quote['text']}"</div>
-                <div class="quote-author">- {quote['author']}</div>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button("좋아요 취소", key=f"unlike_list_{quote['id']}"):
-            st.session_state.liked_quotes.remove(quote)
-            st.success("좋아요가 취소되었습니다!")
-            st.rerun()
+    st.markdown("---")
+    with st.expander("❤️ 좋아요한 명언", expanded=st.session_state.show_liked_quotes):
+        for quote in st.session_state.liked_quotes:
+            st.markdown(f"""
+                <div class="quote-card">
+                    <div class="quote-text">"{quote['text']}"</div>
+                    <div class="quote-author">- {quote['author']}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button("좋아요 취소", key=f"unlike_list_{quote['id']}"):
+                st.session_state.liked_quotes.remove(quote)
+                st.success("좋아요가 취소되었습니다!")
+                st.rerun()
 
 # 하단 설명
 st.markdown("""
