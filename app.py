@@ -74,6 +74,16 @@ st.set_page_config(
     }
 )
 
+# PWA 설정
+st.markdown("""
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="명언 생성기">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+""", unsafe_allow_html=True)
+
 # CSS 스타일
 st.markdown("""
     <style>
@@ -81,6 +91,12 @@ st.markdown("""
         background-color: #f5f5f5;
         max-width: 800px;  /* 최대 너비 설정 */
         margin: 0 auto;    /* 중앙 정렬 */
+    }
+    /* 제목 스타일 */
+    .stMarkdown h1 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .quote-card {
         background-color: white;

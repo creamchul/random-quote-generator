@@ -1,0 +1,21 @@
+{
+    "name": "랜덤 명언 생성기",
+    "short_name": "명언 생성기",
+    "description": "매일 새로운 명언으로 영감을 받으세요!",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3498db",
+    "icons": [
+        {
+            "src": "icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+} 
