@@ -1,5 +1,14 @@
 import streamlit as st
 import random
+import json
+
+# 세션 상태 초기화
+if 'liked_quotes' not in st.session_state:
+    st.session_state.liked_quotes = []
+if 'excluded_quotes' not in st.session_state:
+    st.session_state.excluded_quotes = []
+if 'custom_quotes' not in st.session_state:
+    st.session_state.custom_quotes = []
 
 # 페이지 설정
 st.set_page_config(
@@ -32,13 +41,22 @@ st.markdown("""
         color: #7f8c8d;
         font-size: 1.1em;
     }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .liked {
+        color: #e74c3c;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# 명언 리스트
-quotes = [
-    {"text": "삶이 있는 한 희망은 있다.", "author": "키케로"},
-    {"text": "산다는 것은 호흡하는 것이 아니라 행동하는 것이다.", "author": "루소"},
+# 기본 명언 리스트
+base_quotes = [
+    {"text": "삶이 있는 한 희망은 있다.", "author": "키케로", "id": "1"},
+    {"text": "산다는 것은 호흡하는 것이 아니라 행동하는 것이다.", "author": "루소", "id": "2"},
     {"text": "하루에 3시간을 걸으면 7년 후에 지구를 한 바퀴 돌 수 있다.", "author": "사무엘 존슨"},
     {"text": "언제나 현재에 집중할 수 있다면 행복할 것이다.", "author": "파울로 코엘료"},
     {"text": "진정으로 웃으려면 고통을 참아야 하며, 나아가 고통을 즐길 줄 알아야 한다.", "author": "찰리 채플린"},
@@ -69,6 +87,9 @@ quotes = [
     {"text": "당신이 할 수 있다고 믿든, 그렇지 않다고 믿든, 믿는 대로 될 것이다.", "author": "헨리 포드"}
 ]
 
+# 모든 명언 합치기 (기본 명언 + 사용자 추가 명언)
+all_quotes = base_quotes + st.session_state.custom_quotes
+
 # 제목과 설명
 st.title("💬 랜덤 명언 생성기")
 st.markdown("""
@@ -77,15 +98,86 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# 사이드바에 명언 추가 폼
+with st.sidebar:
+    st.header("✍️ 새로운 명언 추가")
+    with st.form("add_quote_form"):
+        new_quote_text = st.text_area("명언 내용")
+        new_quote_author = st.text_input("작성자")
+        submit_button = st.form_submit_button("명언 추가")
+        
+        if submit_button and new_quote_text and new_quote_author:
+            new_quote = {
+                "text": new_quote_text,
+                "author": new_quote_author,
+                "id": f"custom_{len(st.session_state.custom_quotes)}"
+            }
+            st.session_state.custom_quotes.append(new_quote)
+            st.success("새로운 명언이 추가되었습니다! 🎉")
+            st.balloons()
+
+# 현재 표시된 명언을 세션 상태에 저장
+if 'current_quote' not in st.session_state:
+    st.session_state.current_quote = None
+
 # 명언 생성 버튼
-if st.button("새로운 명언 보기", type="primary"):
-    quote = random.choice(quotes)
+if st.button("🎲 새로운 명언 보기", type="primary"):
+    # 제외된 명언을 제외한 명언 리스트 생성
+    available_quotes = [q for q in all_quotes if q not in st.session_state.excluded_quotes]
+    
+    if available_quotes:
+        st.session_state.current_quote = random.choice(available_quotes)
+    else:
+        st.warning("모든 명언이 제외되었습니다. 제외 목록을 초기화하시겠습니까?")
+        if st.button("제외 목록 초기화"):
+            st.session_state.excluded_quotes = []
+            st.success("제외 목록이 초기화되었습니다!")
+            st.experimental_rerun()
+
+# 현재 명언 표시
+if st.session_state.current_quote:
+    quote = st.session_state.current_quote
+    
+    # 명언 카드 표시
     st.markdown(f"""
         <div class="quote-card">
             <div class="quote-text">"{quote['text']}"</div>
             <div class="quote-author">- {quote['author']}</div>
         </div>
     """, unsafe_allow_html=True)
+    
+    # 좋아요/제외 버튼
+    col1, col2 = st.columns(2)
+    with col1:
+        if quote in st.session_state.liked_quotes:
+            if st.button("❤️ 좋아요 취소"):
+                st.session_state.liked_quotes.remove(quote)
+                st.success("좋아요가 취소되었습니다!")
+                st.experimental_rerun()
+        else:
+            if st.button("🤍 좋아요"):
+                st.session_state.liked_quotes.append(quote)
+                st.success("좋아요가 추가되었습니다!")
+                st.experimental_rerun()
+    
+    with col2:
+        if st.button("🚫 다시 보지 않기"):
+            st.session_state.excluded_quotes.append(quote)
+            st.session_state.current_quote = None
+            st.success("해당 명언이 제외되었습니다!")
+            st.experimental_rerun()
+
+# 좋아요한 명언 목록
+if st.session_state.liked_quotes:
+    st.markdown("---")
+    st.header("❤️ 좋아요한 명언")
+    for liked_quote in st.session_state.liked_quotes:
+        st.markdown(f"""
+            <div class="quote-card">
+                <div class="quote-text">"{liked_quote['text']}"</div>
+                <div class="quote-author">- {liked_quote['author']}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
 # 하단 설명
 st.markdown("""
