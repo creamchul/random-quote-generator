@@ -2,14 +2,51 @@ import streamlit as st
 import random
 import json
 import time
+import os
+
+# 데이터 파일 경로
+DATA_FILE = "quotes_data.json"
+
+# 데이터 로드 함수
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        # 파일이 없으면 기본 데이터로 생성
+        initial_data = {
+            "custom_quotes": [],
+            "liked_quotes": [],
+            "excluded_quotes": []
+        }
+        save_data(initial_data)
+        return initial_data
+    
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        # JSON 파일이 손상된 경우 기본 데이터로 재생성
+        initial_data = {
+            "custom_quotes": [],
+            "liked_quotes": [],
+            "excluded_quotes": []
+        }
+        save_data(initial_data)
+        return initial_data
+
+# 데이터 저장 함수
+def save_data(data):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+# 데이터 로드
+data = load_data()
 
 # 세션 상태 초기화
 if 'liked_quotes' not in st.session_state:
-    st.session_state.liked_quotes = []
+    st.session_state.liked_quotes = data["liked_quotes"]
 if 'excluded_quotes' not in st.session_state:
-    st.session_state.excluded_quotes = []
+    st.session_state.excluded_quotes = data["excluded_quotes"]
 if 'custom_quotes' not in st.session_state:
-    st.session_state.custom_quotes = []
+    st.session_state.custom_quotes = data["custom_quotes"]
 if 'show_liked_quotes' not in st.session_state:
     st.session_state.show_liked_quotes = False
 if 'current_quote' not in st.session_state:
@@ -19,7 +56,22 @@ if 'current_quote' not in st.session_state:
 st.set_page_config(
     page_title="랜덤 명언 생성기",
     page_icon="💬",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed",  # 사이드바 초기 상태
+    menu_items={
+        'Get Help': 'https://github.com/yourusername/random-quote-generator',
+        'Report a bug': "https://github.com/yourusername/random-quote-generator/issues",
+        'About': """
+        # 랜덤 명언 생성기
+        
+        매일 새로운 명언으로 영감을 받으세요!
+        
+        - 좋아요 기능
+        - 검색 기능
+        - 직접 명언 추가
+        - 제외 기능
+        """
+    }
 )
 
 # CSS 스타일
@@ -27,6 +79,8 @@ st.markdown("""
     <style>
     .stApp {
         background-color: #f5f5f5;
+        max-width: 800px;  /* 최대 너비 설정 */
+        margin: 0 auto;    /* 중앙 정렬 */
     }
     .quote-card {
         background-color: white;
@@ -35,6 +89,10 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin: 20px 0;
         text-align: center;
+        transition: transform 0.3s ease;  /* 호버 효과 */
+    }
+    .quote-card:hover {
+        transform: translateY(-5px);  /* 호버 시 위로 살짝 이동 */
     }
     .quote-text {
         font-size: 1.3em;
@@ -54,6 +112,23 @@ st.markdown("""
     }
     .liked {
         color: #e74c3c;
+    }
+    /* 버튼 스타일 */
+    .stButton>button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #2980b9;
+    }
+    /* 검색창 스타일 */
+    .stTextInput>div>div>input {
+        border-radius: 20px;
+        padding: 10px 20px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -159,6 +234,11 @@ with st.expander("📝 직접 명언 추가하기"):
                 "id": new_quote_id
             }
             st.session_state.custom_quotes.append(new_quote)
+            save_data({
+                "custom_quotes": st.session_state.custom_quotes,
+                "liked_quotes": st.session_state.liked_quotes,
+                "excluded_quotes": st.session_state.excluded_quotes
+            })
             st.success("새로운 명언이 추가되었습니다!")
             st.rerun()
         else:
@@ -200,11 +280,21 @@ if st.session_state.current_quote:
         if quote in st.session_state.liked_quotes:
             if st.button("❤️ 좋아요 취소", key=f"unlike_current_{quote['id']}"):
                 st.session_state.liked_quotes.remove(quote)
+                save_data({
+                    "custom_quotes": st.session_state.custom_quotes,
+                    "liked_quotes": st.session_state.liked_quotes,
+                    "excluded_quotes": st.session_state.excluded_quotes
+                })
                 st.success("좋아요가 취소되었습니다!")
                 st.rerun()
         else:
             if st.button("🤍 좋아요", key=f"like_{quote['id']}"):
                 st.session_state.liked_quotes.append(quote)
+                save_data({
+                    "custom_quotes": st.session_state.custom_quotes,
+                    "liked_quotes": st.session_state.liked_quotes,
+                    "excluded_quotes": st.session_state.excluded_quotes
+                })
                 st.success("좋아요가 추가되었습니다!")
                 st.rerun()
     
@@ -212,6 +302,11 @@ if st.session_state.current_quote:
         if st.button("🚫 다시 보지 않기", key=f"exclude_{quote['id']}"):
             st.session_state.excluded_quotes.append(quote)
             st.session_state.current_quote = None
+            save_data({
+                "custom_quotes": st.session_state.custom_quotes,
+                "liked_quotes": st.session_state.liked_quotes,
+                "excluded_quotes": st.session_state.excluded_quotes
+            })
             st.success("해당 명언이 제외되었습니다!")
             st.rerun()
 
