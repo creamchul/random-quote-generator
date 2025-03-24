@@ -9,6 +9,8 @@ if 'excluded_quotes' not in st.session_state:
     st.session_state.excluded_quotes = []
 if 'custom_quotes' not in st.session_state:
     st.session_state.custom_quotes = []
+if 'show_liked_quotes' not in st.session_state:
+    st.session_state.show_liked_quotes = False
 
 # 페이지 설정
 st.set_page_config(
@@ -98,6 +100,27 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# 검색 기능
+search_query = st.text_input("🔍 명언 검색", placeholder="명언이나 작성자로 검색해보세요...")
+if search_query:
+    search_query = search_query.lower()
+    search_results = [
+        quote for quote in all_quotes 
+        if search_query in quote['text'].lower() or search_query in quote['author'].lower()
+    ]
+    
+    if search_results:
+        st.markdown(f"### 📝 검색 결과 ({len(search_results)}개)")
+        for quote in search_results:
+            st.markdown(f"""
+                <div class="quote-card">
+                    <div class="quote-text">"{quote['text']}"</div>
+                    <div class="quote-author">- {quote['author']}</div>
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("검색 결과가 없습니다.")
+
 # 사이드바에 명언 추가 폼
 with st.sidebar:
     st.header("✍️ 새로운 명언 추가")
@@ -168,17 +191,24 @@ if st.session_state.current_quote:
             st.success("해당 명언이 제외되었습니다!")
             st.rerun()
 
-# 좋아요한 명언 목록
+# 좋아요한 명언 목록 (접을 수 있는 섹션)
 if st.session_state.liked_quotes:
     st.markdown("---")
-    st.header("❤️ 좋아요한 명언")
-    for liked_quote in st.session_state.liked_quotes:
-        st.markdown(f"""
-            <div class="quote-card">
-                <div class="quote-text">"{liked_quote['text']}"</div>
-                <div class="quote-author">- {liked_quote['author']}</div>
-            </div>
-        """, unsafe_allow_html=True)
+    with st.expander("❤️ 좋아요한 명언", expanded=st.session_state.show_liked_quotes):
+        for liked_quote in st.session_state.liked_quotes:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"""
+                    <div class="quote-card">
+                        <div class="quote-text">"{liked_quote['text']}"</div>
+                        <div class="quote-author">- {liked_quote['author']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                if st.button("❌ 좋아요 해제", key=f"unlike_{liked_quote['id']}"):
+                    st.session_state.liked_quotes.remove(liked_quote)
+                    st.success("좋아요가 해제되었습니다!")
+                    st.rerun()
 
 # 하단 설명
 st.markdown("""
