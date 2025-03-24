@@ -97,16 +97,18 @@ st.markdown("""
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 1.5rem !important;  /* 모바일에서 더 작은 폰트 사이즈 */
-        line-height: 1.2 !important;
-        margin-bottom: 0.5rem !important;
+        font-size: 1.3rem !important;  /* 기본 폰트 사이즈 더 작게 */
+        line-height: 1.1 !important;   /* 줄 간격 더 좁게 */
+        margin-bottom: 0.3rem !important;
         padding: 0 !important;
+        max-width: 100% !important;    /* 최대 너비 제한 */
     }
     /* 모바일 대응 */
     @media (max-width: 768px) {
         .stMarkdown h1 {
-            font-size: 1.2rem !important;
-            padding: 0 10px !important;
+            font-size: 1rem !important;  /* 모바일에서 더 작은 폰트 사이즈 */
+            padding: 0 5px !important;   /* 좌우 패딩 더 작게 */
+            letter-spacing: -0.5px !important;  /* 자간 좁게 */
         }
     }
     .quote-card {
