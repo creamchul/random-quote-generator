@@ -115,6 +115,7 @@ with st.sidebar:
             st.session_state.custom_quotes.append(new_quote)
             st.success("새로운 명언이 추가되었습니다! 🎉")
             st.balloons()
+            st.rerun()
 
 # 현재 표시된 명언을 세션 상태에 저장
 if 'current_quote' not in st.session_state:
@@ -132,7 +133,7 @@ if st.button("🎲 새로운 명언 보기", type="primary"):
         if st.button("제외 목록 초기화"):
             st.session_state.excluded_quotes = []
             st.success("제외 목록이 초기화되었습니다!")
-            st.experimental_rerun()
+            st.rerun()
 
 # 현재 명언 표시
 if st.session_state.current_quote:
@@ -153,19 +154,19 @@ if st.session_state.current_quote:
             if st.button("❤️ 좋아요 취소"):
                 st.session_state.liked_quotes.remove(quote)
                 st.success("좋아요가 취소되었습니다!")
-                st.experimental_rerun()
+                st.rerun()
         else:
             if st.button("🤍 좋아요"):
                 st.session_state.liked_quotes.append(quote)
                 st.success("좋아요가 추가되었습니다!")
-                st.experimental_rerun()
+                st.rerun()
     
     with col2:
         if st.button("🚫 다시 보지 않기"):
             st.session_state.excluded_quotes.append(quote)
             st.session_state.current_quote = None
             st.success("해당 명언이 제외되었습니다!")
-            st.experimental_rerun()
+            st.rerun()
 
 # 좋아요한 명언 목록
 if st.session_state.liked_quotes:
